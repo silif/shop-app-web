@@ -1,0 +1,191 @@
+.loginPage {
+  display: flex;
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.loginBanner {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.bannerTag {
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.loginBanner h1 {
+  font-size: 48px;
+  margin: 0 0 20px;
+}
+
+.bannerText {
+  font-size: 18px;
+  opacity: 0.9;
+  line-height: 1.6;
+}
+
+.loginCard {
+  width: 480px;
+  padding: 60px;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.cardTabs {
+  display: flex;
+  gap: 40px;
+  margin-bottom: 40px;
+}
+
+.cardTab {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #666;
+  cursor: pointer;
+  padding: 0 0 8px;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s;
+}
+
+.cardTab.isActive {
+  color: #667eea;
+  border-bottom-color: #667eea;
+}
+
+.cardHeader {
+  margin-bottom: 30px;
+}
+
+.cardHeader h2 {
+  font-size: 28px;
+  margin: 0 0 10px;
+  color: #333;
+}
+
+.cardHeader p {
+  color: #888;
+  margin: 0;
+}
+
+.loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formField span {
+  font-size: 14px;
+  color: #333;
+}
+
+.formField input {
+  height: 44px;
+  padding: 0 16px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.3s;
+}
+
+.formField input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.formInline {
+  display: flex;
+  gap: 12px;
+}
+
+.formInline input {
+  flex: 1;
+}
+
+.formAction {
+  padding: 0 16px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.3s;
+}
+
+.formAction:hover:not(:disabled) {
+  background: #5a6fd6;
+}
+
+.formAction:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.formMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.formCheckbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.formCheckbox input {
+  width: 16px;
+  height: 16px;
+}
+
+.formMeta a {
+  color: #667eea;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.formHint {
+  font-size: 13px;
+  color: #888;
+  margin: 0;
+}
+
+.formSubmit {
+  height: 48px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s;
+  margin-top: 10px;
+}
+
+.formSubmit:hover:not(:disabled) {
+  background: #5a6fd6;
+}
+
+.formSubmit:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
