@@ -1,0 +1,94 @@
+.profilePage {
+  min-height: 100vh;
+  background: #f5f7fb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.profileCard {
+  width: min(560px, 100%);
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  padding: 32px;
+}
+
+.profileCard h1 {
+  font-size: 28px;
+  color: #1f2937;
+  margin-bottom: 20px;
+}
+
+.tip {
+  color: #6b7280;
+}
+
+.error {
+  color: #dc2626;
+}
+
+.infoList {
+  display: grid;
+  gap: 14px;
+}
+
+.infoItem {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.infoItem span {
+  color: #6b7280;
+}
+
+.infoItem strong {
+  color: #111827;
+}
+
+.publishButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.publishButton:hover {
+  background: #1d4ed8;
+}
+
+.actions {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mineButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 8px;
+  background: #0f766e;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.mineButton:hover {
+  background: #0d5f59;
+}

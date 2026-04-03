@@ -1,22 +1,46 @@
 import { useEffect, useState, useCallback, ChangeEvent } from 'react';
-import type { AuthMode, LoginFormData } from '@/types';
+import { useNavigate } from 'react-router-dom';
+import { authService } from '@/services';
+import { setToken } from '@/utils';
+import type { AuthMode } from '@/types';
+import type {
+  LoginParams,
+  RegisterParams,
+  SendVerificationCodeParams,
+} from '@/services/auth/dto';
 import styles from './Login.module.css';
 
-const INITIAL_FORM_DATA: LoginFormData = {
+const INITIAL_LOGIN_FORM = {
   account: '',
+  password: '',
+  remember: false,
+};
+
+const INITIAL_REGISTER_FORM = {
   email: '',
-  verificationCode: '',
+  code: '',
   username: '',
   password: '',
   confirmPassword: '',
 };
 
 const CODE_COUNTDOWN = 60;
+const PASSWORD_MIN_LENGTH = 6;
+const PASSWORD_MAX_LENGTH = 20;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const isValidEmail = (email: string) => EMAIL_REGEX.test(email);
+const isValidPasswordLength = (password: string) =>
+  password.length >= PASSWORD_MIN_LENGTH && password.length <= PASSWORD_MAX_LENGTH;
 
 export default function LoginPage() {
+  const navigate = useNavigate();
   const [mode, setMode] = useState<AuthMode>('login');
   const [countdown, setCountdown] = useState(0);
-  const [formData, setFormData] = useState<LoginFormData>(INITIAL_FORM_DATA);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [loginForm, setLoginForm] = useState(INITIAL_LOGIN_FORM);
+  const [registerForm, setRegisterForm] = useState(INITIAL_REGISTER_FORM);
 
   useEffect(() => {
     if (countdown === 0) {
@@ -36,33 +60,168 @@ export default function LoginPage() {
     return () => window.clearInterval(timer);
   }, [countdown]);
 
-  const handleSubmit = useCallback((event: React.FormEvent) => {
-    event.preventDefault();
+  const isLogin = mode === 'login';
+  const canSendCode = !isLogin && Boolean(registerForm.email.trim()) && countdown === 0;
+
+  const handleLoginChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = event.target;
+    setLoginForm((current) => ({
+      ...current,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+    setError('');
   }, []);
 
-  const isLogin = mode === 'login';
-  const canSendCode = !isLogin && formData.email.trim() && countdown === 0;
-  const canRegister = !isLogin && formData.verificationCode.trim();
-
-  const handleChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+  const handleRegisterChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
-    setFormData((current) => ({
+    setRegisterForm((current) => ({
       ...current,
       [name]: value,
     }));
+    setError('');
   }, []);
 
   const handleModeChange = useCallback((nextMode: AuthMode) => {
     setMode(nextMode);
     setCountdown(0);
+    setError('');
   }, []);
 
-  const handleSendCode = useCallback(() => {
+  const handleSendCode = useCallback(async () => {
+    const email = registerForm.email.trim();
+
+    if (!email) {
+      setError('请输入邮箱后再发送验证码');
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      setError('邮箱格式不正确');
+      return;
+    }
+
     if (!canSendCode) {
       return;
     }
-    setCountdown(CODE_COUNTDOWN);
-  }, [canSendCode]);
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const params: SendVerificationCodeParams = { email };
+      await authService.sendVerificationCode(params);
+      setCountdown(CODE_COUNTDOWN);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '发送验证码失败');
+    } finally {
+      setLoading(false);
+    }
+  }, [canSendCode, registerForm.email]);
+
+  const handleLoginSubmit = useCallback(
+    async (event: React.FormEvent) => {
+      event.preventDefault();
+      const account = loginForm.account.trim();
+      const password = loginForm.password;
+
+      if (!account || !password) {
+        setError('请输入用户名或邮箱和密码');
+        return;
+      }
+
+      if (account.includes('@') && !isValidEmail(account)) {
+        setError('邮箱格式不正确');
+        return;
+      }
+
+      if (!isValidPasswordLength(password)) {
+        setError(`密码长度需为 ${PASSWORD_MIN_LENGTH}-${PASSWORD_MAX_LENGTH} 位`);
+        return;
+      }
+
+      setLoading(true);
+      setError('');
+
+      try {
+        const params: LoginParams = {
+          account,
+          password,
+          remember: loginForm.remember,
+        };
+        const response = await authService.login(params);
+        if (response.token) {
+          setToken(response.token);
+        }
+        console.log('登录成功:', response);
+        navigate('/profile');
+      } catch (err) {
+        setError(err instanceof Error ? err.message : '登录失败');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [loginForm, navigate]
+  );
+
+  const handleRegisterSubmit = useCallback(
+    async (event: React.FormEvent) => {
+      event.preventDefault();
+      const email = registerForm.email.trim();
+      const username = registerForm.username.trim();
+      const code = registerForm.code.trim();
+      const password = registerForm.password;
+
+      if (!email) {
+        setError('请输入邮箱');
+        return;
+      }
+
+      if (!isValidEmail(email)) {
+        setError('邮箱格式不正确');
+        return;
+      }
+
+      if (!code) {
+        setError('请输入邮箱验证码');
+        return;
+      }
+
+      if (!username) {
+        setError('请输入用户名');
+        return;
+      }
+
+      if (!isValidPasswordLength(password)) {
+        setError(`密码长度需为 ${PASSWORD_MIN_LENGTH}-${PASSWORD_MAX_LENGTH} 位`);
+        return;
+      }
+
+      if (registerForm.password !== registerForm.confirmPassword) {
+        setError('两次输入的密码不一致');
+        return;
+      }
+
+      setLoading(true);
+      setError('');
+
+      try {
+        const params: RegisterParams = {
+          email,
+          code,
+          username,
+          password,
+        };
+        const response = await authService.register(params);
+        console.log('注册成功:', response);
+        navigate('/profile');
+      } catch (err) {
+        setError(err instanceof Error ? err.message : '注册失败');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [registerForm, navigate]
+  );
 
   return (
     <main className={styles.loginPage}>
@@ -101,100 +260,141 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <form className={styles.loginForm} onSubmit={handleSubmit}>
-          <label className={styles.formField}>
-            <span>{isLogin ? '用户名或邮箱' : '邮箱'}</span>
-            <input
-              type={isLogin ? 'text' : 'email'}
-              name={isLogin ? 'account' : 'email'}
-              placeholder={isLogin ? '请输入用户名或邮箱' : '请输入邮箱'}
-              value={isLogin ? formData.account : formData.email}
-              onChange={handleChange}
-            />
-          </label>
+        {error && <div className={styles.errorMessage}>{error}</div>}
 
-          {!isLogin && (
+        {isLogin ? (
+          <form className={styles.loginForm} onSubmit={handleLoginSubmit}>
+            <label className={styles.formField}>
+              <span>用户名或邮箱</span>
+              <input
+                type="text"
+                name="account"
+                placeholder="请输入用户名或邮箱"
+                value={loginForm.account}
+                onChange={handleLoginChange}
+                disabled={loading}
+              />
+            </label>
+
+            <label className={styles.formField}>
+              <span>密码</span>
+              <input
+                type="password"
+                name="password"
+                placeholder="请输入密码"
+                value={loginForm.password}
+                onChange={handleLoginChange}
+                disabled={loading}
+              />
+            </label>
+
+            <div className={styles.formMeta}>
+              <label className={styles.formCheckbox}>
+                <input
+                  type="checkbox"
+                  name="remember"
+                  checked={loginForm.remember}
+                  onChange={handleLoginChange}
+                  disabled={loading}
+                />
+                <span>记住我</span>
+              </label>
+              <a href="/">忘记密码？</a>
+            </div>
+
+            <button
+              className={styles.formSubmit}
+              type="submit"
+              disabled={loading}
+            >
+              {loading ? '登录中...' : '登录'}
+            </button>
+          </form>
+        ) : (
+          <form className={styles.loginForm} onSubmit={handleRegisterSubmit}>
+            <label className={styles.formField}>
+              <span>邮箱</span>
+              <input
+                type="email"
+                name="email"
+                placeholder="请输入邮箱"
+                value={registerForm.email}
+                onChange={handleRegisterChange}
+                disabled={loading}
+              />
+            </label>
+
             <label className={styles.formField}>
               <span>邮箱验证码</span>
               <div className={styles.formInline}>
                 <input
                   type="text"
-                  name="verificationCode"
+                  name="code"
                   placeholder="请输入邮箱验证码"
-                  value={formData.verificationCode}
-                  onChange={handleChange}
+                  value={registerForm.code}
+                  onChange={handleRegisterChange}
+                  disabled={loading}
                 />
                 <button
                   className={styles.formAction}
                   type="button"
                   onClick={handleSendCode}
-                  disabled={!canSendCode}
+                  disabled={!canSendCode || loading}
                 >
                   {countdown > 0 ? `${countdown}s 后重试` : '发送验证码'}
                 </button>
               </div>
             </label>
-          )}
 
-          {!isLogin && (
             <label className={styles.formField}>
               <span>用户名</span>
               <input
                 type="text"
                 name="username"
                 placeholder="请输入用户名"
-                value={formData.username}
-                onChange={handleChange}
+                value={registerForm.username}
+                onChange={handleRegisterChange}
+                disabled={loading}
               />
             </label>
-          )}
 
-          <label className={styles.formField}>
-            <span>密码</span>
-            <input
-              type="password"
-              name="password"
-              placeholder="请输入密码"
-              value={formData.password}
-              onChange={handleChange}
-            />
-          </label>
+            <label className={styles.formField}>
+              <span>密码</span>
+              <input
+                type="password"
+                name="password"
+                placeholder="请输入密码"
+                value={registerForm.password}
+                onChange={handleRegisterChange}
+                disabled={loading}
+              />
+            </label>
 
-          {!isLogin && (
             <label className={styles.formField}>
               <span>确认密码</span>
               <input
                 type="password"
                 name="confirmPassword"
                 placeholder="请再次输入密码"
-                value={formData.confirmPassword}
-                onChange={handleChange}
+                value={registerForm.confirmPassword}
+                onChange={handleRegisterChange}
+                disabled={loading}
               />
             </label>
-          )}
 
-          {isLogin ? (
-            <div className={styles.formMeta}>
-              <label className={styles.formCheckbox}>
-                <input type="checkbox" name="remember" />
-                <span>记住我</span>
-              </label>
-              <a href="/">忘记密码？</a>
-            </div>
-          ) : (
             <p className={styles.formHint}>
               请输入邮箱并发送验证码，校验通过后才可完成注册。
             </p>
-          )}
 
-          <button
-            className={styles.formSubmit}
-            type="submit"
-            disabled={!isLogin && !canRegister}
-          >
-            {isLogin ? '登录' : '注册'}
-          </button>
-        </form>
+            <button
+              className={styles.formSubmit}
+              type="submit"
+              disabled={loading}
+            >
+              {loading ? '注册中...' : '注册'}
+            </button>
+          </form>
+        )}
       </section>
     </main>
   );
