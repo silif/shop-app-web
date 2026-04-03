@@ -4,6 +4,8 @@ import type {
   CreateProductResponse,
   ProductMinePageData,
   ProductMineQuery,
+  ProductListPageData,
+  ProductListQuery,
 } from "./dto";
 
 const BASE_URL = "/api/product";
@@ -46,6 +48,24 @@ export const productService = {
     }
     const suffix = search.toString() ? `?${search.toString()}` : "";
     return http.get<ProductMinePageData>(`${BASE_URL}/mine${suffix}`);
+  },
+
+  list: (query: ProductListQuery = {}) => {
+    const search = new URLSearchParams();
+    if (query.keyword) {
+      search.set("keyword", query.keyword);
+    }
+    if (query.conditionCode !== undefined) {
+      search.set("conditionCode", String(query.conditionCode));
+    }
+    if (query.current !== undefined) {
+      search.set("current", String(query.current));
+    }
+    if (query.pageSize !== undefined) {
+      search.set("pageSize", String(query.pageSize));
+    }
+    const suffix = search.toString() ? `?${search.toString()}` : "";
+    return http.get<ProductListPageData>(`${BASE_URL}/list${suffix}`);
   },
 };
 

@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { userService } from '@/services';
 import type { UserProfile } from '@/services/user/dto';
 import styles from './Profile.module.css';

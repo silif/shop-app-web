@@ -8,6 +8,7 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
+  { path: '/product/list', label: '闲置商品' },
   { path: '/profile', label: '个人中心' },
   { path: '/product/mine', label: '我的闲置' },
   { path: '/product/create', label: '发布闲置' },

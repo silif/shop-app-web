@@ -212,7 +212,9 @@ export default function LoginPage() {
           password,
         };
         const response = await authService.register(params);
-        console.log('注册成功:', response);
+        if (response.token) {
+          setToken(response.token);
+        }
         navigate('/profile');
       } catch (err) {
         setError(err instanceof Error ? err.message : '注册失败');

@@ -6,11 +6,9 @@ export interface LoginParams {
 
 export interface LoginResponse {
   token: string;
-  user: {
-    id: number;
-    username: string;
-    email: string;
-  };
+  id: number;
+  username: string;
+  email: string;
 }
 
 export interface RegisterParams {
@@ -21,9 +19,10 @@ export interface RegisterParams {
 }
 
 export interface RegisterResponse {
+  token: string;
   id: number;
-  email: string;
   username: string;
+  email: string;
 }
 
 export interface SendVerificationCodeParams {

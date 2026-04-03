@@ -4,12 +4,13 @@ import LoginPage from '@/pages/Login';
 import ProfilePage from '@/pages/Profile';
 import ProductCreatePage from '@/pages/ProductCreate';
 import ProductMinePage from '@/pages/ProductMine';
+import ProductListPage from '@/pages/ProductList';
 
 export default function App() {
   return (
     <div className="app-shell">
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<Navigate to="/product/list" replace />} />
         <Route path="/login" element={<LoginPage />} />
         <Route
           path="/profile"
@@ -32,6 +33,14 @@ export default function App() {
           element={
             <Layout>
               <ProductMinePage />
+            </Layout>
+          }
+        />
+        <Route
+          path="/product/list"
+          element={
+            <Layout>
+              <ProductListPage />
             </Layout>
           }
         />
