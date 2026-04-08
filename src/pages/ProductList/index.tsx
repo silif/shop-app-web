@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Input, Select, Spin, Pagination, Button } from "antd";
-import { productService } from "@/services";
+import { productService, UserProfile, userService, chatService } from "@/services";
 import { resolveImageUrl } from "@/config";
 import type { ProductListItem, ProductListPageData, ConditionCode } from "@/services/product/dto";
 import styles from "./ProductList.module.css";
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 8;
 
 const CONDITION_OPTIONS = [
   { value: 1, label: "全新" },
@@ -31,64 +32,101 @@ const normalizeListPage = (payload: unknown): ProductListPageData => {
     return {
       content: Array.isArray(obj.content) ? obj.content : [],
       pageSize: typeof obj.pageSize === "number" ? obj.pageSize : PAGE_SIZE,
-      current: typeof obj.current === "number" ? obj.current : 1,
+      current: typeof obj.current === "number" ? obj.current : 0,
       total: typeof obj.total === "number" ? obj.total : 0,
     };
   }
   return {
     content: [],
     pageSize: PAGE_SIZE,
-    current: 1,
+    current: 0,
     total: 0,
   };
 };
 
 export default function ProductListPage() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [keyword, setKeyword] = useState("");
   const [conditionCode, setConditionCode] = useState<ConditionCode | undefined>();
-  const [currentPage, setCurrentPage] = useState(1);
+  const [appliedKeyword, setAppliedKeyword] = useState("");
+  const [appliedConditionCode, setAppliedConditionCode] = useState<
+    ConditionCode | undefined
+  >();
+  const [currentPage, setCurrentPage] = useState(0);
   const [pageSize] = useState(PAGE_SIZE);
   const [total, setTotal] = useState(0);
   const [products, setProducts] = useState<ProductListItem[]>([]);
-
-  const fetchProducts = useCallback(async () => {
-    setLoading(true);
-    setError("");
-
-    try {
-      const response = await productService.list({
-        keyword: keyword || undefined,
-        conditionCode,
-        current: currentPage,
-        pageSize,
-      });
-      const normalized = normalizeListPage(response);
-      setProducts(normalized.content);
-      setCurrentPage(normalized.current || 1);
-      setTotal(normalized.total || 0);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "获取商品列表失败");
-    } finally {
-      setLoading(false);
-    }
-  }, [keyword, conditionCode, currentPage, pageSize]);
+  const [searchNonce, setSearchNonce] = useState(0);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    let cancelled = false;
+
+    const run = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const response = await productService.list({
+          keyword: appliedKeyword || undefined,
+          conditionCode: appliedConditionCode,
+          current: currentPage,
+          pageSize,
+        });
+        const normalized = normalizeListPage(response);
+        if (!cancelled) {
+          setProducts(normalized.content);
+          setTotal(normalized.total || 0);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "获取商品列表失败");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [appliedKeyword, appliedConditionCode, currentPage, pageSize, searchNonce]);
 
   const handleSearch = () => {
-    setCurrentPage(1);
-    fetchProducts();
+    setAppliedKeyword(keyword.trim());
+    setAppliedConditionCode(conditionCode);
+    setCurrentPage(0);
+    setSearchNonce((n) => n + 1);
   };
+
+  useEffect( () => {
+    const fetchProfile = async () => {
+      const response = await userService.getMyProfile();
+      setProfile(response);
+    }
+    fetchProfile();
+  }, []);
 
   const handleConditionChange = (value: ConditionCode | undefined) => {
     setConditionCode(value);
   };
 
   const hasData = useMemo(() => products.length > 0, [products]);
+
+  const handleIWant = async (productId: number) => {
+    try {
+      const response = await chatService.createChat({ productId });
+      navigate(`/chat/${response.id}`);
+    } catch (err) {
+      console.error('创建聊天失败', err);
+    }
+  };
 
   return (
     <main className={styles.page}>
@@ -139,16 +177,21 @@ export default function ProductListPage() {
                       <p className={styles.meta}>
                         {CONDITION_LABELS[Number(product.conditionCode)] || "未知成色"}
                       </p>
+                      {
+                        product.ownerUsername !== profile?.username && <div className={styles.actions}>
+                        <Button size="small" onClick={() => handleIWant(product.id)}>我想要</Button>
+                      </div>
+                       }
                     </div>
                   ))}
                 </div>
 
                 <div className={styles.pagination}>
                   <Pagination
-                    current={currentPage}
+                    current={currentPage + 1}
                     pageSize={pageSize}
                     total={total}
-                    onChange={setCurrentPage}
+                    onChange={(page) => setCurrentPage(page - 1)}
                     showSizeChanger={false}
                   />
                 </div>

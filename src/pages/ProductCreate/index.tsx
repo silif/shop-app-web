@@ -2,11 +2,7 @@ import { ChangeEvent, FormEvent, useMemo, useState } from "react";
 import { Modal } from "antd";
 import { useNavigate } from "react-router-dom";
 import { productService } from "@/services";
-import type {
-  CreateProductParams,
-  ProductConditionCode,
-  ProductStatusCode,
-} from "@/services/product/dto";
+import type { CreateProductParams, ProductConditionCode } from "@/services/product/dto";
 import styles from "./ProductCreate.module.css";
 
 const CONDITION_OPTIONS: Array<{ label: string; value: ProductConditionCode }> = [
@@ -18,16 +14,10 @@ const CONDITION_OPTIONS: Array<{ label: string; value: ProductConditionCode }> =
   { label: "有瑕疵或异常", value: 6 },
 ];
 
-const STATUS_OPTIONS: Array<{ label: string; value: ProductStatusCode }> = [
-  { label: "上架", value: 1 },
-  { label: "下架", value: 2 },
-];
-
 type ProductFormState = {
   name: string;
   description: string;
   price: string;
-  statusCode: ProductStatusCode;
   conditionCode: ProductConditionCode;
   purchasedAt: string;
   category: string;
@@ -40,7 +30,6 @@ const INITIAL_FORM: ProductFormState = {
   name: "",
   description: "",
   price: "",
-  statusCode: 1,
   conditionCode: 2,
   purchasedAt: "",
   category: "",
@@ -87,14 +76,6 @@ export default function ProductCreatePage() {
     setError("");
   };
 
-  const handleStatusCodeChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    setForm((current) => ({
-      ...current,
-      statusCode: Number(event.target.value) as ProductStatusCode,
-    }));
-    setError("");
-  };
-
   const handleConditionCodeChange = (event: ChangeEvent<HTMLSelectElement>) => {
     setForm((current) => ({
       ...current,
@@ -134,7 +115,7 @@ export default function ProductCreatePage() {
         name: form.name.trim(),
         description: form.description.trim() || undefined,
         price: Number(form.price),
-        statusCode: form.statusCode,
+        statusCode: 1,
         conditionCode: form.conditionCode,
         purchasedAt: form.purchasedAt || undefined,
         category: form.category.trim() || undefined,
@@ -212,28 +193,16 @@ export default function ProductCreatePage() {
             </label>
           </div>
 
-          <div className={styles.row}>
-            <label>
-              商品状态 *
-              <select value={form.statusCode} onChange={handleStatusCodeChange}>
-                {STATUS_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              成色 *
-              <select value={form.conditionCode} onChange={handleConditionCodeChange}>
-                {CONDITION_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
+          <label>
+            成色 *
+            <select value={form.conditionCode} onChange={handleConditionCodeChange}>
+              {CONDITION_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
 
           <div className={styles.row}>
             <label>

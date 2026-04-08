@@ -5,6 +5,8 @@ import ProfilePage from '@/pages/Profile';
 import ProductCreatePage from '@/pages/ProductCreate';
 import ProductMinePage from '@/pages/ProductMine';
 import ProductListPage from '@/pages/ProductList';
+import ChatListPage from '@/pages/ChatList';
+import ChatPage from '@/pages/Chat';
 
 export default function App() {
   return (
@@ -41,6 +43,22 @@ export default function App() {
           element={
             <Layout>
               <ProductListPage />
+            </Layout>
+          }
+        />
+        <Route
+          path="/chat/list"
+          element={
+            <Layout>
+              <ChatListPage />
+            </Layout>
+          }
+        />
+        <Route
+          path="/chat/:chatId"
+          element={
+            <Layout>
+              <ChatPage />
             </Layout>
           }
         />

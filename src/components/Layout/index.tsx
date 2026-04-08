@@ -9,7 +9,6 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { path: '/product/list', label: '闲置商品' },
-  { path: '/profile', label: '个人中心' },
   { path: '/product/mine', label: '我的闲置' },
   { path: '/product/create', label: '发布闲置' },
 ];
@@ -39,6 +38,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   {item.label}
                 </Link>
               ))}
+              <Link to="/profile" style={{ marginLeft: 'auto' }} className={`${styles.navLink} ${location.pathname === '/profile' ? styles.active : ''}`}>
+                个人中心
+              </Link>
+              <Link to="/chat/list" className={`${styles.navLink} ${location.pathname === '/chat/list' ? styles.active : ''}`}>
+                我的聊天
+              </Link>
               <button onClick={handleLogout} className={styles.logoutBtn}>
                 退出登录
               </button>

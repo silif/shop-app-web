@@ -5,10 +5,12 @@ import { resolveImageUrl } from "@/config";
 import type { ProductMineItem, ProductMinePageData } from "@/services/product/dto";
 import styles from "./ProductMine.module.css";
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 4;
 const STATUS_LABELS: Record<number, string> = {
-  1: "上架",
-  2: "下架",
+  1: "在售",
+  2: "预定",
+  3: "已售",
+  4: "已下架",
 };
 
 const CONDITION_LABELS: Record<number, string> = {
@@ -26,14 +28,14 @@ const normalizeMinePage = (payload: unknown): ProductMinePageData => {
     return {
       content: Array.isArray(obj.content) ? obj.content : [],
       pageSize: typeof obj.pageSize === "number" ? obj.pageSize : PAGE_SIZE,
-      current: typeof obj.current === "number" ? obj.current : 1,
+      current: typeof obj.current === "number" ? obj.current : 0,
       total: typeof obj.total === "number" ? obj.total : 0,
     };
   }
   return {
     content: [],
     pageSize: PAGE_SIZE,
-    current: 1,
+    current: 0,
     total: 0,
   };
 };
@@ -41,8 +43,7 @@ const normalizeMinePage = (payload: unknown): ProductMinePageData => {
 export default function ProductMinePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(PAGE_SIZE);
+  const [currentPage, setCurrentPage] = useState(0);
   const [total, setTotal] = useState(0);
   const [products, setProducts] = useState<ProductMineItem[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<ProductMineItem | null>(null);
@@ -57,13 +58,11 @@ export default function ProductMinePage() {
       try {
         const response = await productService.mine({
           current: currentPage,
-          pageSize,
+          pageSize: PAGE_SIZE,
         });
         const normalized = normalizeMinePage(response);
         if (!cancelled) {
           setProducts(normalized.content);
-          setCurrentPage(normalized.current || 1);
-          setPageSize(normalized.pageSize || PAGE_SIZE);
           setTotal(normalized.total || 0);
         }
       } catch (err) {
@@ -82,7 +81,7 @@ export default function ProductMinePage() {
     return () => {
       cancelled = true;
     };
-  }, [currentPage, pageSize]);
+  }, [currentPage]);
 
   const hasData = useMemo(() => products.length > 0, [products]);
 
@@ -126,10 +125,10 @@ export default function ProductMinePage() {
 
                 <div className={styles.pagination}>
                   <Pagination
-                    current={currentPage}
-                    pageSize={pageSize}
+                    current={currentPage + 1}
+                    pageSize={PAGE_SIZE}
                     total={total}
-                    onChange={setCurrentPage}
+                    onChange={currentPage => setCurrentPage(currentPage - 1)}
                     showSizeChanger={false}
                   />
                 </div>
