@@ -48,15 +48,20 @@ export interface CreateChatResponse {
 }
 
 export interface ConversationProductInfo {
-  productId: number;
-  productName: string;
-  productImageUrl?: string;
-  productPrice?: number;
-  productDescription?: string;
-  conditionCode?: number;
+  id: number;
+  name: string;
+  description?: string;
+  price: number;
+  statusCode: number;
+  statusLabel: string;
+  conditionCode: number;
+  conditionLabel: string;
+  purchasedAt?: string;
+  mainImageUrl: string;
+  imageUrls: string[];
   category?: string;
-  sellerId: number;
-  sellerUsername: string;
-  buyerId: number;
-  buyerUsername: string;
+  stock: number;
+  ownerId: number;
+  ownerUsername: string;
+  createdAt: string;
 }

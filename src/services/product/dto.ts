@@ -75,3 +75,18 @@ export interface ProductListQuery {
   current?: number;
   pageSize?: number;
 }
+
+export interface ProductDetail {
+  id: number;
+  name: string;
+  description?: string;
+  price?: number;
+  statusCode?: ProductStatusCode;
+  conditionCode?: ProductConditionCode;
+  purchasedAt?: string;
+  mainImageUrl?: string;
+  imageUrls?: string[];
+  category?: string;
+  stock?: number;
+  [key: string]: unknown;
+}

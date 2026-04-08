@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Input, Spin } from 'antd';
 import { chatService, UserProfile, userService } from '@/services';
 import type { ChatMessage } from '@/services/chat/dto';
+import ChatProductDetail from '@/components/ChatProductDetail';
 import styles from './Chat.module.css';
 
 const POLL_INTERVAL_MS = 3000;
@@ -15,6 +16,7 @@ export default function ChatPage() {
   const [sending, setSending] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
+  const [product, setProduct] = useState<any>(null);
 
   // 获取用户信息
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -42,6 +44,10 @@ export default function ChatPage() {
         console.log(messagesRes);
         if (!cancelled && messagesRes) {
           setMessages(messagesRes);
+        }
+        const productRes = await chatService.getConversationProduct(chatId);
+        if (!cancelled && productRes) {
+          setProduct(productRes);
         }
       } catch (err) {
         if (!cancelled) {
@@ -112,8 +118,14 @@ export default function ChatPage() {
     <main className={styles.page}>
       <div className={styles.container}>
         <div className={styles.productPanel}>
-          <h2>商品详情</h2>
-          <p className={styles.noProduct}>请从商品详情页进入聊天</p>
+          {product ? (
+            <ChatProductDetail product={product} />
+          ) : (
+            <>
+              <h2>商品详情</h2>
+              <p className={styles.noProduct}>请从商品详情页进入聊天</p>
+            </>
+          )}
         </div>
 
         <div className={styles.chatPanel}>

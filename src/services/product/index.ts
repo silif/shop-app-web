@@ -6,6 +6,7 @@ import type {
   ProductMineQuery,
   ProductListPageData,
   ProductListQuery,
+  ProductDetail,
 } from "./dto";
 
 const BASE_URL = "/api/product";
@@ -66,6 +67,10 @@ export const productService = {
     }
     const suffix = search.toString() ? `?${search.toString()}` : "";
     return http.get<ProductListPageData>(`${BASE_URL}/list${suffix}`);
+  },
+
+  detail: (id: number) => {
+    return http.get<ProductDetail>(`${BASE_URL}/${id}`);
   },
 };
 
