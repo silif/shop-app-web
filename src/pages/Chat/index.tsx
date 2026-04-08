@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { use, useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Input, Spin } from 'antd';
 import { chatService, UserProfile, userService } from '@/services';
@@ -41,14 +41,10 @@ export default function ChatPage() {
       }
       try {
         const messagesRes = await chatService.getMessages(chatId);
-        console.log(messagesRes);
         if (!cancelled && messagesRes) {
           setMessages(messagesRes);
         }
-        const productRes = await chatService.getConversationProduct(chatId);
-        if (!cancelled && productRes) {
-          setProduct(productRes);
-        }
+
       } catch (err) {
         if (!cancelled) {
           console.error('获取聊天信息失败', err);
@@ -104,6 +100,17 @@ export default function ChatPage() {
     }
   };
 
+  const onFresh = async() => {
+    const productRes = await chatService.getConversationProduct(chatId!);
+      if (productRes) {
+        setProduct(productRes);
+      }
+  };
+
+  useEffect(() => {
+    void onFresh();
+  }, []);
+
   if (loading) {
     return (
       <main className={styles.page}>
@@ -119,7 +126,7 @@ export default function ChatPage() {
       <div className={styles.container}>
         <div className={styles.productPanel}>
           {product ? (
-            <ChatProductDetail product={product} />
+            <ChatProductDetail onFresh={onFresh} isSeller={profile?.id === product.ownerId} productDetail={product} />
           ) : (
             <>
               <h2>商品详情</h2>

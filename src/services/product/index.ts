@@ -7,6 +7,7 @@ import type {
   ProductListPageData,
   ProductListQuery,
   ProductDetail,
+  UpdateProductParams,
 } from "./dto";
 
 const BASE_URL = "/api/product";
@@ -71,6 +72,10 @@ export const productService = {
 
   detail: (id: number) => {
     return http.get<ProductDetail>(`${BASE_URL}/${id}`);
+  },
+
+  update: (id: number, params: UpdateProductParams) => {
+    return http.post<void>(`${BASE_URL}/updateStatus`, params);
   },
 };
 

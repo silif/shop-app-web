@@ -1,5 +1,5 @@
 import { ChangeEvent, FormEvent, useMemo, useState } from "react";
-import { Modal } from "antd";
+import { message, Modal } from "antd";
 import { useNavigate } from "react-router-dom";
 import { productService } from "@/services";
 import type { CreateProductParams, ProductConditionCode } from "@/services/product/dto";
@@ -124,20 +124,10 @@ export default function ProductCreatePage() {
         images: form.images,
       };
 
-      const result = await productService.create(params);
+      await productService.create(params);
       setForm(INITIAL_FORM);
-      Modal.success({
-        title: "发布成功",
-        content: `商品上传成功（ID: ${result?.id ?? "-"}）`,
-        okText: "返回个人页",
-        centered: true,
-        onOk: () => {
-          navigate("/profile");
-        },
-        afterClose: () => {
-          navigate("/profile");
-        },
-      });
+      message.success("商品上传成功");
+      navigate("/product/mine");
     } catch (err) {
       setError(err instanceof Error ? err.message : "商品上传失败");
     } finally {

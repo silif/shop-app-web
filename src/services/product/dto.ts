@@ -90,3 +90,8 @@ export interface ProductDetail {
   stock?: number;
   [key: string]: unknown;
 }
+
+export interface UpdateProductParams {
+  statusCode?: ProductStatusCode;
+  productId: number;
+}

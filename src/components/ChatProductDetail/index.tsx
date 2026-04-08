@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react';
-import { Spin } from 'antd';
+import { useState } from 'react';
+import { Button, message } from 'antd';
 import { ConversationProductInfo, productService } from '@/services';
 import { resolveImageUrl } from '@/config';
-import type { ProductDetail } from '@/services/product/dto';
 import styles from './ChatProductDetail.module.css';
 
 type ChatProductDetailProps = {
-  product: ConversationProductInfo;
+  productDetail: ConversationProductInfo;
+  isSeller: boolean;
+  onFresh?: () => void;
 }
 
 const CONDITION_LABELS: Record<number, string> = {
@@ -18,10 +19,10 @@ const CONDITION_LABELS: Record<number, string> = {
   6: "有瑕疵或异常",
 };
 
-export default function ChatProductDetail({product} : ChatProductDetailProps) {
+export default function ChatProductDetail({ productDetail, isSeller, onFresh }: ChatProductDetailProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  if (!product) {
+  if (!productDetail) {
     return (
       <div className={styles.container}>
         <p className={styles.error}>商品不存在</p>
@@ -29,10 +30,10 @@ export default function ChatProductDetail({product} : ChatProductDetailProps) {
     );
   }
 
-  const images = product.imageUrls && product.imageUrls.length > 0
-    ? product.imageUrls
-    : product.mainImageUrl
-      ? [product.mainImageUrl]
+  const images = productDetail.imageUrls && productDetail.imageUrls.length > 0
+    ? productDetail.imageUrls
+    : productDetail.mainImageUrl
+      ? [productDetail.mainImageUrl]
       : [];
 
   const handlePrev = () => {
@@ -43,6 +44,18 @@ export default function ChatProductDetail({product} : ChatProductDetailProps) {
     setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
+  const handleToggleStatus = async () => {
+    try {
+      const newStatus = productDetail.statusCode === 1 ? 2 : 1;
+      await productService.update(productDetail.id, { statusCode: newStatus,productId: productDetail.id });
+      message.success(newStatus === 2 ? '已设为预定' : '已设为在售');
+      onFresh?.();
+    } catch (err) {
+      message.error('设置失败');
+      console.error(err);
+    }
+  };
+
   return (
     <div className={styles.container}>
       <h2 className={styles.title}>商品详情</h2>
@@ -50,7 +63,7 @@ export default function ChatProductDetail({product} : ChatProductDetailProps) {
       {images.length > 0 ? (
         <div className={styles.imageWrapper}>
           <div className={styles.mainImage}>
-            <img src={resolveImageUrl(images[currentIndex])} alt={product.name} />
+            <img src={resolveImageUrl(images[currentIndex])} alt={productDetail.name} />
             {images.length > 1 && (
               <>
                 <button className={`${styles.navBtn} ${styles.prevBtn}`} onClick={handlePrev}>
@@ -81,19 +94,32 @@ export default function ChatProductDetail({product} : ChatProductDetailProps) {
       )}
 
       <div className={styles.info}>
-        <h3 className={styles.name}>{product.name}</h3>
+        <h3 className={styles.name}>{productDetail.name}</h3>
         <p className={styles.price}>
-          {product.price !== undefined ? `￥${product.price}` : "价格待定"}
+          {productDetail.price !== undefined ? `￥${productDetail.price}` : "价格待定"}
         </p>
-        {product.conditionCode && (
+        {productDetail.conditionCode && (
           <p className={styles.condition}>
-            成色：{CONDITION_LABELS[product.conditionCode] || "未知"}
+            成色：{CONDITION_LABELS[productDetail.conditionCode] || "未知"}
           </p>
         )}
-        {product.description && (
-          <p className={styles.description}>{product.description}</p>
+        {productDetail.description && (
+          <p className={styles.description}>{productDetail.description}</p>
         )}
       </div>
+
+      {isSeller && (
+         <div className={styles.footer}>
+         <Button
+           className={styles.reserveBtn}
+           onClick={handleToggleStatus}
+           block={true}
+           type={productDetail.statusCode === 1 ? 'primary' : 'default'}
+         >
+           {productDetail.statusCode === 1 ? '设为预定' : '设为在售'}
+         </Button>
+       </div>
+      )}
     </div>
   );
 }
